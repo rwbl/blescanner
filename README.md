@@ -10,12 +10,12 @@ Python3
 python3 blescanner.py arguments
 ```
 **Arguments**
-| Argument | Brief   | Values      | Description                                        |
-| ---------|:-------:|:------------| -------------------------------------------------- |
-| -t       | timeout | Seconds     | Scanning duration in seconds. Minimum is 5 seconds |
-| -a       | advdata | 0=Off, 1=On | Add advertised data to the result                  | 
-| -m       | mac     | MAC address | MAC address for single device only                 | 
-| -d       | debug   | 0=Off, 1=On | Debug information                                  | 
+| Argument | Brief   | Values      | Description                                                         |
+| ---------|:-------:|:------------| ------------------------------------------------------------------- |
+| -t       | timeout | Seconds     | Scanning duration in seconds. Default 10 seconds. Minimum 5 seconds |
+| -a       | advdata | 0=Off, 1=On | Add advertised data to the result                                   | 
+| -m       | mac     | MAC address | MAC address for single device only                                  | 
+| -d       | debug   | 0=Off, 1=On | Debug information                                                   | 
 
 ## Examples
 **Scan for all BLE devices**
