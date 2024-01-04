@@ -4,7 +4,7 @@
 # File: blescanner_multiple_devices.py
 # Date: 20240104
 # Author: Robert W.B. Linn
-# Scan for a single BLE device and parse the data published.
+# Example: Scan for multiple BLE device and parse the data published.
 # Dependencies: blescanner.py - Tool to scan for Bluetooth Low Energy (BLE) devices.
 
 import subprocess
