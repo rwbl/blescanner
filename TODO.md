@@ -1,7 +1,7 @@
 # BLEScanner - TODO
 
-## NEW: Scan Once
-Option to scan for data once instead completing the full scan duration (which could return multiple entries for the devices found).
+## NEW: Scan Multiple Times
+Option to scan for data multiple times with delay between the scans.
 ### Status
 Not started.
 
