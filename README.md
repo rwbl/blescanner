@@ -3,7 +3,8 @@
 The BLE Scanner is a tool to scan for BLE devices and return a JSON object (array) holding the list of devices found with address, name and optional advertised data.
 
 ## Requirements
-Python3
+* Python version 3
+* [Bleak}(https://github.com/hbldh/bleak)
 
 ## Run
 ```
