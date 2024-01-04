@@ -87,7 +87,7 @@ def ble_scanner(mac, timeout, advdata, debug):
 if __name__ == "__main__":
     print(f'Scanning single device {_MAC} for {_TIME_OUT} seconds.')
     # Scan for single device using its MAC address
-    status, devices = ble_scanner(_MAC + '#', _TIME_OUT, _ADVDATA, _DEBUG)
+    status, devices = ble_scanner(_MAC, _TIME_OUT, _ADVDATA, _DEBUG)
     # Handle the result
     if status:
         print(f'devices ={devices}')
