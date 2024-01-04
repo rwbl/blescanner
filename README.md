@@ -1,6 +1,6 @@
 # BLEScanner - README
 
-The BLE Scanner is a tool to scan for BLE devices and return a JSON object (array) holding the list of devices found with address, name and optional advertised data.
+The BLE Scanner is a tool to scan for Bluetooth Low Energy (BLE) devices and return a JSON object (array) holding the list of devices found with address, name and optional advertised data.
 
 ## Requirements
 * Python version 3
