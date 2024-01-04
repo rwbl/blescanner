@@ -4,7 +4,7 @@ The BLE Scanner is a tool to scan for Bluetooth Low Energy (BLE) devices and ret
 
 ## Requirements
 * Python version 3
-* [Bleak}(https://github.com/hbldh/bleak)
+* [Bleak](https://github.com/hbldh/bleak)
 
 ## Run
 ```
