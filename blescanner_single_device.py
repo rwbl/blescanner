@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# File: blescanner_multiple_devices.py
+# File: blescanner_single_device.py
 # Date: 20240104
 # Author: Robert W.B. Linn
 # Scan for a single BLE device and parse the data published.
@@ -23,6 +23,9 @@ _TIME_OUT = 5
 # Advertised data
 _ADVDATA = 1
 
+# Single device MAC address
+_MAC = "A4:C1:38:D1:17:57"
+
 # BLE handler External Python script
 # The Domoticz parameter homefolder is used to set the path = see onstart
 _BLE_HANDLER = "blescanner.py"
@@ -33,12 +36,12 @@ _BLESCANNER = "blescanner.py"
 # BLE SCANNER
 ################################################################################
             
-def ble_scanner(timeout, advdata, debug):
+def ble_scanner(mac, timeout, advdata, debug):
     """Scan for BLE devices and send to the Domoticz log"""
 
     try:
         if debug:
-            print('[DEBUG ble_scanner] called')
+            print(f'[DEBUG ble_scanner] called {mac}')
         
         # The external script must located in the same folder as the plugin
         # Command executed: python3 blescanner.py timeout advertised_data
@@ -47,6 +50,7 @@ def ble_scanner(timeout, advdata, debug):
             [
                 _PYTHON_COMMAND,
                 _BLESCANNER,
+                '-m ' + mac,
                 '-t ' + str(timeout),
                 '-a ' + str(advdata),
                 '-d ' + str(debug)
@@ -81,11 +85,14 @@ def ble_scanner(timeout, advdata, debug):
 ################################################################################
 
 if __name__ == "__main__":
-    print(f'Scanning multiple devices for {_TIME_OUT} seconds.')
-    status, devices = ble_scanner(_TIME_OUT, _ADVDATA, _DEBUG)
+    print(f'Scanning single device {_MAC} for {_TIME_OUT} seconds.')
+    # Scan for single device using its MAC address
+    status, devices = ble_scanner(_MAC + '#', _TIME_OUT, _ADVDATA, _DEBUG)
+    # Handle the result
     if status:
-        # print(f'{devices}')
+        print(f'devices ={devices}')
         for device in devices:
             print(device['address'], device['name'], device['advertisementdata'])
     else:
-        print('[WARNING] No devices found.')
+        print('[WARNING] Device not found.')
+
