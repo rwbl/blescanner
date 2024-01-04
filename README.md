@@ -21,7 +21,7 @@ python3 blescanner.py arguments
 ## Examples
 **Scan for all BLE devices**
 
-Get advertised data for all BLE devices found during 5 seconds scanning.
+Get advertised data for all BLE devices found during a 5 seconds scan.
 ```
 python3 blescanner.py -t 5 -a 1
 ```
@@ -38,7 +38,7 @@ python3 blescanner.py -t 5 -a 1
 
 **Scan for single device** 
 
-Get advertised data for single device during 5 seconds scan.
+Get advertised data for single device during a 5 seconds scan.
 ```
 python3 blescanner.py -t 5 -a 1 -m 28:CD:C1:09:05:98
 ```
