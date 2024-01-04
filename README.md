@@ -10,8 +10,8 @@ Python3
 python3 blescanner.py arguments
 ```
 **Arguments**
-| Argument | Brief   | Values       | Description                                       |
-| ---------|:-------:|:------------:|:-------------------------------------------------:|
+| Argument | Brief   | Values      | Description                                        |
+| ---------|:-------:|:------------| -------------------------------------------------- |
 | -t       | timeout | seconds     | Scanning duration in seconds. Minimum is 5 seconds |
 | -a       | advdata | 0=Off, 1=On | Flag to add advertised data to the result          | 
 | -m       | mac     | MAC address | MAC address for single device only                 | 
