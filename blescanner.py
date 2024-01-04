@@ -51,6 +51,8 @@ class BLEScanner():
         self._timeout = int(timeout) 
         self._timeout = self._timeout if self._timeout >= _TIMEOUT_MIN else _TIMEOUT_MIN
         self._advdata = False if advdata == 0 else True
+        if mac != None:
+            mac = mac.strip()
         self._mac = mac
         self._debug = False if debug == 0 else True
         return
@@ -59,7 +61,7 @@ class BLEScanner():
         """Scan for sensors"""
 
         if self._debug:
-            print(f'[DEBUG scanning] running for {self._timeout} seconds')
+            print(f'[DEBUG scanning] running for {self._timeout} seconds, mac={self._mac}')
 
         devices = await BleakScanner.discover(
             timeout = self._timeout,
@@ -84,7 +86,7 @@ class BLEScanner():
                 # print(newdevice, _mac)
                 if self._mac == None:
                     result.append(newdevice)
-                elif device.address == self._mac:
+                elif self._mac == device.address:
                     result.append(newdevice)
             if self._debug:
                 print('[DEBUG scanning] result')
@@ -123,11 +125,12 @@ class BLEScanner():
 
                 if self._mac == None:
                     result.append(newdevice)
-                elif device.address == self._mac:
+                    if self._debug:
+                        print(f'[DEBUG scanning] newdevice={newdevice}')            
+                elif self._mac == device.address:
                     result.append(newdevice)
-                if self._debug:
-                    print(newdevice)
-            
+                    if self._debug:
+                        print(f'[DEBUG scanning] newdevice={newdevice}')            
             if self._debug:
                 print("[DEBUG scanning] result")
             print(json.dumps(result))
