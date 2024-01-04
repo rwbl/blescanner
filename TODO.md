@@ -1,7 +1,7 @@
 # BLEScanner - TODO
 
-## NEW: Run Multiple Times
-Option to run the blescanner multiple times with delay between the runs.
+## NEW: Scan Once
+Option to scan for data once instead completing the full scan duration (which could return multiple entries for the devices found).
 ### Status
 Not started.
 
