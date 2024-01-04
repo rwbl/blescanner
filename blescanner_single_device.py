@@ -90,7 +90,7 @@ if __name__ == "__main__":
     status, devices = ble_scanner(_MAC, _TIME_OUT, _ADVDATA, _DEBUG)
     # Handle the result
     if status:
-        print(f'devices ={devices}')
+        # print(f'devices ={devices}')
         for device in devices:
             print(device['address'], device['name'], device['advertisementdata'])
     else:
