@@ -19,7 +19,7 @@ python3 blescanner.py arguments
 | -d       | debug   | 0=Off, 1=On | Debug information                                                   | 
 
 ## Examples
-**Scan for all BLE devices**
+**Scan for all BLE devices** 
 ```
 python3 blescanner.py -t 5 -a 1
 ```
@@ -34,7 +34,7 @@ python3 blescanner.py -t 5 -a 1
 ]
 ```
 
-**Scan for single device**
+**Scan for single device** 
 Data for single device, i.e. Raspberry Pi Pico W in this example
 ```
 python3 blescanner.py -t 5 -a 1 -m 28:CD:C1:09:05:98
