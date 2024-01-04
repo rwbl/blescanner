@@ -47,8 +47,7 @@ class BLEScanner():
     """Scan for BLE devices"""
     
     def __init__(self, timeout=10, advdata=0, mac=None, debug=0):
-        """Init the ble scanner with options.
-        """
+        """Init the ble scanner with options."""
         self._timeout = int(timeout) 
         self._timeout = self._timeout if self._timeout >= _TIMEOUT_MIN else _TIMEOUT_MIN
         self._advdata = False if advdata == 0 else True
@@ -78,7 +77,7 @@ class BLEScanner():
             result = []
             for device in devices:
                 if self._debug:
-                    print(device)
+                    print(f'[DEBUG scanning] {device}')
                 newdevice = {}
                 newdevice['address'] = device.address
                 newdevice['name'] = device.name
@@ -88,7 +87,7 @@ class BLEScanner():
                 elif device.address == self._mac:
                     result.append(newdevice)
             if self._debug:
-                print('result')
+                print('[DEBUG scanning] result')
             print(json.dumps(result))
            
         else:
@@ -128,12 +127,14 @@ class BLEScanner():
                     result.append(newdevice)
                 if self._debug:
                     print(newdevice)
+            
             if self._debug:
-                print("result")
+                print("[DEBUG scanning] result")
             print(json.dumps(result))
         
 if __name__ == "__main__":
     """Scan for BLE sensors"""
+    
     # python3 blescanner.py -t 5 -a 1 -m 28:CD:C1:09:05:98
     parser = argparse.ArgumentParser()        
     parser.add_argument("-t", "--timeout", default=10, type=int)   
@@ -151,3 +152,4 @@ if __name__ == "__main__":
         print(f'[DEBUG main] {_VERSION}, Python {sys.version}')
         print(f'[DEBUG main] arguments: timeout={args.timeout}, advdata={args.advdata}, mac={args.mac}, debug={args.debug}')
     asyncio.run(blescanner.scanning())
+
