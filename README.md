@@ -54,7 +54,7 @@ python3 blescanner.py -t 5 -a 1 -m 28:CD:C1:09:05:98
 ## Examples running BLEScanner from Python script
 See folder **examples** for some scripts ruuning the BLEScanner to get device data.
 
-The sensor examples, like the Govee GVH5075, Xiaomi Mi TempHum, Ruuvi RuuviTag, include decoding sensor data into properties temperature, humidity and more.
+The sensor examples, like the Govee GVH5075, Xiaomi Mi TempHum, Ruuvi RuuviTag, include decoding sensor data into properties temperature, humidity, battery level and more.
 
 ## Licence
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
