@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-File: blescanner_blescanner_atc_mithermometer.py
+File: blescanner_atc_mithermometer.py
 Date: 20240106
 Author: Robert W.B. Linn
 Scan for a single BLE device XIAOMI Mijia Bluetooth Thermometer 2 Wireless Smart Electric Digital Hygrometer Thermometer and decode the data published.

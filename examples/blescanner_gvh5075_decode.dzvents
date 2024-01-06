@@ -1,0 +1,200 @@
+--[[
+File: blescanner_gvh5075_decode.dzvents
+Date: 20231106
+Description:
+Get the temperature, humidity and battery level from Govee 5075 Bluetooth Hygrometer Thermometer sensors.
+The external python script blescanner.py, located in folder ~domoticz/scripts/python/, runs asynchronous to get the sensor data.
+The keys temperature, humidity and batterylevel are used to update a Domoticz device type Temp + Humidity, subtype THGN122/123/132, THGR122/228/238/268.
+The device is created from the hardware controller dummy.
+
+External shell command:
+python scripts/python/blescanner.py -m MACADDRESS -a 1 -t 5
+If the script does not run using python then use sudo python.
+
+TODO Battery Level:
+At the time of writing it is not possible to set the batterylevel via dzvents.
+as the property batterylevel is readonly.
+The workaround applied is updating the device via HTTP API request.
+http://localhost:8080/json.htm?type=command&param=udevice&idx=%s&nvalue=0&svalue=%s&battery=%s
+]]--
+
+-- For tests: Switch Pushbutton on to trigger running the external python script
+local IDX_TESTSWITCH = 3
+
+-- Constants command & callback for the dzVents function executeShellCommand
+local EXEC_CMD = "python scripts/python/blescanner.py -m {MACADDRESS} -a 1 -t 5"
+local EXEC_CB = "GVH5075"
+
+-- Max execution time in seconds.
+local EXEC_TIMEOUT = 30
+
+-- Manufacturer key used to get the sensor data
+local ADDRESS_KEY = "address"
+local ADVERTISEMENT_KEY = "advertisementdata"
+local MANUFACTURER_KEY = "0XEC88"
+
+-- Timer rule - minimum is every 5 minutes (use for tests)
+-- local TIMER_RULE = "every 5 minutes"
+local TIMER_RULE = "every 5 minutes"
+
+-- Define the sensors
+-- mac - MAC address of the sensor. Use the tool sudo bluetoothctl > scan on to the mac address.
+-- idxth - Domoticz temp+hum device for this sensor.
+-- aftersec - Start the shell command after NN seconds (this to avoid multiple ble requests to hci0).
+-- active - Set active to true for sensor usage.
+local sensors = {
+    s01 = {mac = "A4:C1:38:D1:17:57", idxth = 2, aftersec=0, active=true},
+    s02 = {mac = "A4:C1:38:XX:XX:XX", idxth = 1, aftersec=10, active=false},
+    -- Add more
+}
+
+-- Get the sensor table with properties for given mac address
+local function get_sensor(domoticz, mac)
+    local result = nil
+    for k,v in pairs(sensors) do
+        if (v.mac == mac) then
+            result = v
+            -- domoticz.log( string.format("%s=%s", k, v) )
+        end
+    end
+    if result == nil then
+        domoticz.log(string.format("Sensor %s not found.", mac), domoticz.LOG_ERROR)
+    end
+    return result
+end
+
+-- Update a Temp+Hum device incl. humidity status and battery level 0-100
+-- This is done via http api request because dzvents does not support updating battery level (is readonly in dzvents)
+local function update_device_temp_hum(domoticz, idx, temperature, humidity, batterylevel)
+    -- Log the data
+    domoticz.log(string.format(
+        "idx=%d, temperature=%.2f, humidity=%.2f, humiditystatus=%d, batterylevel=%d"
+        ,idx
+        ,temperature
+        ,humidity
+        ,domoticz.utils.humidityStatus(temperature, humidity)
+        ,batterylevel))
+
+    -- Set the svalue TEMP;HUM;HUM_STAT
+    local svalue = string.format(
+        "%s;%s;%s"
+        ,tostring(temperature)
+        ,tostring(humidity)
+        ,tostring(domoticz.utils.humidityStatus(temperature, humidity)))
+
+    local url = string.format(
+        "http://localhost:8080/json.htm?type=command&param=udevice&idx=%s&nvalue=0&svalue=%s&battery=%s",
+        tostring(idx), svalue, tostring(batterylevel))
+    -- domoticz.log(url)
+
+    -- Submit the url without any additional parameter
+    domoticz.openURL(url)
+end
+
+local function hexdecode(hex)
+   return (hex:gsub("%x%x", function(digits) return string.char(tonumber(digits, 16)) end))
+end
+
+local function hexencode(str)
+   return (str:gsub(".", function(char) return string.format("%02x", char:byte()) end))
+end
+
+-- Decode the data which has 6 bytes.
+-- Data Conversion:
+-- data (6 bytes)=00029E436400 > 00 02 9E 43 64 00
+-- The temp+hum are calculated from the first 4 bytes:
+-- The data bytes 0-4 = HEX 00 02 9E 43 > converted to DEC 171587
+-- temperature = 171587 / 10000 = 17.1 °C              (round, 1)
+-- humidity    = 171587 % 1000 = 587 / 10 = 58.7 %RH   (int)
+-- battery     = data byte 5 = 64 > DEC 100            (int)
+local function decode_advdata(domoticz, address, data)
+    domoticz.log(string.format(
+        'decode__advdata: address=%s,data=%s'
+        ,address,data)) 
+    
+    -- TempHum 4 Bytes 0-3 (pos 1-8)
+    local temphumdata = string.sub(data,1,8)
+    local temphum = tonumber('0x' .. temphumdata)
+    local temperature = temphum / 10000
+    local humidity = (temphum % 1000) / 10
+    
+    -- Batterylevel 1 Byte 4 (pos 9-10)
+    temphumdata = string.sub(data,9,10)
+    local batterylevel = tonumber('0x' .. temphumdata)
+    domoticz.log(string.format(
+        'temperature=%.2f, humidity=%.2f, battery=%d'
+        ,temperature
+        ,humidity
+        ,batterylevel)) 
+
+    -- Get the sensor table for the idx & update the device
+    local sensor = get_sensor(domoticz, address)
+    if sensor.idxth > 0 then
+        update_device_temp_hum(domoticz, sensor.idxth, temperature, humidity, batterylevel)
+        -- Domoticz.Devices[].updateTempHum(temperature, humidity [, status] )
+    end
+end
+
+-- Parse the device data (lua table)
+-- {'address': 'A4:C1:38:D1:17:57', 'name': 'GVH5075_1757', 'local_name': 'GVH5075_1757', 'advertisementdata': {'manufacturer_data': True, '0XEC88': '000286C15F00', '0X4C': '0215494E54454C4C495F524F434B535F48575075F2FF0C', 'rssi': -60}}
+local function parse_device_data(domoticz, data)
+    -- The data is a table array. get the first item.
+    domoticz.log(data)
+    data = data[1]
+    local advdata = data[ADVERTISEMENT_KEY]
+    decode_advdata(domoticz, data[ADDRESS_KEY], advdata[MANUFACTURER_KEY])
+end
+
+-- Run the python3 script with the macaddress parameter
+-- Use aftersec in case gathering data for more then one sensors
+-- Request the sensor data by executing python script
+local function get_sensor_data(domoticz, sensor)
+    domoticz.log(string.format(
+        "get_sensor_data:%s,%s"
+        ,sensor.mac, sensor.active)) 
+
+    if (sensor.active == true) then
+        domoticz.executeShellCommand(
+        {
+            command = EXEC_CMD:gsub('{MACADDRESS}', sensor.mac),
+            callback = EXEC_CB,
+            timeout = EXEC_TIMEOUT,
+        }).afterSec(sensor.aftersec)
+    end
+end
+
+-- MAIN
+return
+{
+    on = {
+	    devices = { IDX_TESTSWITCH },
+        timer = { TIMER_RULE },
+        shellCommandResponses = { EXEC_CB },
+    },
+    logging = { 
+        level = domoticz.LOG_INFO, marker = EXEC_CB, 
+    },   
+
+    execute = function(domoticz, item)
+        -- Handle trigger switch or timer
+        if (item.isDevice or item.isTimer) then 
+            -- Loop over all sensors to get the sensor data
+            for key, sensor in pairs(sensors) do
+                -- domoticz.log(sensor)
+                get_sensor_data(domoticz, sensor)
+            end
+
+        -- Handle shell command response
+        elseif item.isShellCommandResponse then
+            -- domoticz.log(item)
+            -- Check if the response is a JSON object
+            if (item.isJSON) then
+                -- Get the sensor data json format             
+                parse_device_data(domoticz, item.json)
+            else
+                -- Error = log the property errorText
+                domoticz.log(item.errorText, domoticz.LOG_ERROR)
+            end
+        end
+    end
+}
