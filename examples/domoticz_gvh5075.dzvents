@@ -11,7 +11,7 @@ The keys temperature, humidity and batterylevel are used to update a Domoticz de
 The device is created from the hardware controller dummy.
 
 Run:
-python scripts/python/blescanner_gvh5075.py -m MACADDRESS
+python scripts/python/blescanner_gvh5075.py -m MACADDRESS -w scripts/python/
 If the script does not run using python then use sudo python.
 
 TODO Battery Level:
@@ -32,8 +32,8 @@ local EXEC_CB = "GVH5075"
 local EXEC_TIMEOUT = 30
 
 -- Timer rule - minimum is every 5 minutes (use for tests)
-local TIMER_RULE = "every 5 minutes"
--- local TIMER_RULE = "every 15 minutes"
+-- local TIMER_RULE = "every 5 minutes"
+local TIMER_RULE = "every 15 minutes"
 
 -- Define the sensors
 -- mac - MAC address of the sensor. Use the tool sudo bluetoothctl > scan on to the mac address.
