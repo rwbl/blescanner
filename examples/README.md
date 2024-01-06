@@ -9,5 +9,6 @@ For the **Domoticz Home Automation System**, there are examples on how to use th
 
 * The automation script examples are written in in **dzVents** (based on Lua).
 * The Python script runs asynchronous (not blocking the Domoticz system) to get the sensor data (as JSON object).
-* The additional script argument **workingdir** is required to run the blescanner from the ~domoticz/scripts/python folder. Example (must end with /): -w scripts/python/
-* The default scanning time is 10 seconds, but can be changed by setting the timeout argument. Example 5 seconds: -t 5
+* The additional script argument **workingdir** is required to run the blescanner from the ~domoticz/scripts/python folder. Example (must end with /): -w scripts/python/.
+* The default scanning time is 10 seconds, but can be changed by setting the timeout argument in the dzVents script. Example 5 seconds: -t 5.
+* The **Domoticz hardware controller "Dummy"** is used to create virtual devices, like a **Temp + Humidity device**, which are updated by the dzVents script.
