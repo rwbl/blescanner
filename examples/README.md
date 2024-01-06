@@ -1,4 +1,4 @@
-Examples using the BLEScanner.
+# Examples using the BLEScanner.
 
 The Python scripts are running the BLEScanner as an external process.
 The output, JSON object containing an array with one or more devices (sensors), is decoded according the data format specifications.
