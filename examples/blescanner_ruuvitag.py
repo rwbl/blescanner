@@ -26,21 +26,21 @@ Key=0X499 Value=050C7A5E64C7FFFFE8006C03FCAA9619319EF76FD827B78D
 The advertised characteristics data received has 18 bytes, like 050C7A5E64C7FFFFE8006C03FCAA9619319E:
 The dataformat 05 (RAWv2, ID: 0x05) is used. Reference: https://github.com/ruuvi/ruuvi-sensor-protocols
 
-Offset  | Allowed values        | Description
+Offset 	| Allowed values 	    | Description
 -------	|:---------------------:|-----------
-0       | 5                     | Data format (8bit)
-1-2     | -32767 ... 32767      | Temperature in 0.005 degrees
-3-4     | 0 ... 40 000          | Humidity (16bit unsigned) in 0.0025% (0-163.83% range, though realistically 0-100%)
-5-6     | 0 ... 65534           | Pressure (16bit unsigned) in 1 Pa units, with offset of -50 000 Pa
-7-8     | -32767 ... 32767      | Acceleration-X (Most Significant Byte first)
-9-10    | -32767 ... 32767      | Acceleration-Y (Most Significant Byte first)
-11-12   | -32767 ... 32767      | Acceleration-Z (Most Significant Byte first)
-13-14   | 0 ... 2046, 0 ... 30  | Power info (11+5bit unsigned), first 11 bits Is the battery voltage above 1.6V, in millivolts (1.6V To 3.646V range). Last 5 bits unsigned are the TX Power above -40dBm, in 2dBm steps. (-40dBm To +20dBm range)
-15      | 0 ... 254             | Movement counter (8 Bit unsigned), incremented by motion detection interrupts from accelerometer
-16-17   | 0 ... 65534           | Measurement sequence number (16 Bit unsigned), each time a measurement is taken, this is incremented by one, used for measurement de-duplication. Depending on the transmit interval, multiple packets with the same measurements can be sent, And there may be measurements that never were sent.
-18-23   | Any valid mac         | 48bit MAC address. THIS IS NOT USED as does not fit into the message length.
+0		| 5 					| Data format (8bit)
+1-2		| -32767 ... 32767 		| Temperature in 0.005 degrees
+3-4		| 0 ... 40 000 			| Humidity (16bit unsigned) in 0.0025% (0-163.83% range, though realistically 0-100%)
+5-6 	| 0 ... 65534 			| Pressure (16bit unsigned) in 1 Pa units, with offset of -50 000 Pa
+7-8 	| -32767 ... 32767 		| Acceleration-X (Most Significant Byte first)
+9-10 	| -32767 ... 32767 		| Acceleration-Y (Most Significant Byte first)
+11-12 	| -32767 ... 32767 		| Acceleration-Z (Most Significant Byte first)
+13-14 	| 0 ... 2046, 0 ... 30 	| Power info (11+5bit unsigned), first 11 bits Is the battery voltage above 1.6V, in millivolts (1.6V To 3.646V range). Last 5 bits unsigned are the TX Power above -40dBm, in 2dBm steps. (-40dBm To +20dBm range)
+15 		| 0 ... 254				| Movement counter (8 Bit unsigned), incremented by motion detection interrupts from accelerometer
+16-17 	| 0 ... 65534			| Measurement sequence number (16 Bit unsigned), each time a measurement is taken, this is incremented by one, used for measurement de-duplication. Depending on the transmit interval, multiple packets with the same measurements can be sent, And there may be measurements that never were sent.
+18-23 	| Any valid mac 		| 48bit MAC address. THIS IS NOT USED as does not fit into the message length.
 
-Data Example
+Example
 HEX:
 050B856030C879FFE0006403F8AA16193843
 Data:

@@ -4,13 +4,14 @@ Date: 20231106
 Description:
 Get the temperature, humidity and battery level from Govee 5075 Bluetooth Hygrometer Thermometer sensors.
 An external python script, located in folder ~domoticz/scripts/python/, runs asynchronous to get the sensor data.
+Ensure the folder also contains the Python script blescanner.py.
 The script returns a JSON object, like
 {["message"]="", ["name"]="GVH5075_1757", ["mac"]="A4:C1:38:D1:17:57", ["batterylevel"]=95, ["status"]="OK", ["humidity"]=46, ["temperature"]=19.1}
 The keys temperature, humidity and batterylevel are used to update a Domoticz device type Temp + Humidity, subtype THGN122/123/132, THGR122/228/238/268.
 The device is created from the hardware controller dummy.
 
 Run:
-python scripts/python/blescanner_gvh5075_1757.py -m MACADDRESS
+python scripts/python/blescanner_gvh5075.py -m MACADDRESS
 If the script does not run using python then use sudo python.
 
 TODO Battery Level:
@@ -24,7 +25,7 @@ http://localhost:8080/json.htm?type=command&param=udevice&idx=%s&nvalue=0&svalue
 local IDX_TESTSWITCH = 3
 
 -- Constants command & callback for the dzVents function executeShellCommand
-local EXEC_CMD = "python scripts/python/blescanner_gvh5075_1757.py -m {MACADDRESS}"
+local EXEC_CMD = "python scripts/python/blescanner_gvh5075.py -m {MACADDRESS} -w scripts/python/"
 local EXEC_CB = "GVH5075"
 
 -- Max execution time in seconds.
@@ -64,7 +65,8 @@ end
 -- Use aftersec in case gathering data for more then one sensors
 -- Request the sensor data by executing python script
 local function get_sensor_data(domoticz, sensor)
-    domoticz.log(string.format("get_sensor_data:%s", sensor.mac))
+    domoticz.log(string.format("get_sensor_data:%s,%s", sensor.mac, sensor.active))
+
     if (sensor.active == true) then
         domoticz.executeShellCommand(
         {

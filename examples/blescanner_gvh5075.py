@@ -2,33 +2,28 @@
 # -*- coding: utf-8 -*-
 
 """
-File: blescanner_blescanner_atc_mithermometer.py
+File: blescanner_gvh5075.py
 Date: 20240106
 Author: Robert W.B. Linn
-Scan for a single BLE device XIAOMI Mijia Bluetooth Thermometer 2 Wireless Smart Electric Digital Hygrometer Thermometer and decode the data published.
+Scan for a single BLE device Govee 5075 (gvh5075_1757) and decode the data published.
 Dependencies: blescanner.py - Tool to scan for Bluetooth Low Energy (BLE) devices.
 
-Firmware:
-Custom firmware is used enabling listen to advertisements in passive mode. No connection required.
-Reference & Credits: https://github.com/atc1441/ATC_MiThermometer
+The GVH5075 is a wireless Bluetooth Low Energy (BLE) sensor node that sends current readings temperature & humidity & battery health every 2 seconds.
 
 Dataformat:
-The custom firmware advertises 15 bytes.
-Example: C2745238C1A4 7C 06 F1 18 C7 09 2B 17 0E
-
-Bytes 0-6 (6): MAC = C2745238C1A4
-Bytes 7-8 (2): Temp = 7C06 > 067C = DEC 16.6
-Bytes 9-10 (2): Hum = F118 > 18F1 = DEC 63.85
-Bytes 11-12 (2):Voltage = C709 > 09C7 = DEC 2503
-Byte 13 (1): Battery = 2B > 2B = DEC 43
-Byte 14 (1): Counter Not used
-Byte 15 (1): Flags Not used
-
-Example
-Advertised data received: C2745238C1A45907DB15130A36830E, len=15
-Data used to publish as json object: 5907DB15130A36, len=7
-Result json object:
-{"status": "OK", "message": "", "mac": "A4:C1:38:52:74:C2", "name": "ATC_38A90C", "temperature": 18.81, "humidity": 56, "voltage": 2.58, "batterylevel": 54}
+The advertised data is a dict with two entries.
+The entry with 2-bytes-uuid key 0xEC88 is used (Manufacturer Key).
+The data has 6 bytes.
+Example: key=0XEC88, data=00029E436400
+Data Conversion:
+data (6 bytes)=00029E436400 > 00 02 9E 43 64 00
+The temp+hum are calculated from the first 4 bytes:
+The data bytes 0-4 = HEX 00 02 9E 43 > converted to DEC 171587
+temperature = 171587 / 10000 = 17.1 °C              (round, 1)
+humidity    = 171587 % 1000 = 587 / 10 = 58.7 %RH   (int)
+battery     = data byte 5 = 64 > DEC 100            (int)
+Result:
+{"mac": "A4:C1:38:D1:17:57", "name": "GVH5075_1757", "status": "OK", "message": "", "temperature": 17.1, "humidity": 58, "batterylevel": 100}
 """
 
 import argparse
@@ -46,51 +41,50 @@ _DEBUG = 0
 _TIMEOUT_SUBPROCESS = 30
 
 # Timeout running the ble scanner.
-_TIMEOUT = 5
+_TIMEOUT = 10
 
 # Advertised data
 _ADVDATA = 1
 
-# Single device MAC address
-_MAC = "A4:C1:38:38:A9:0C"
-
 # Working dir - use for Domoticz only to set the working directory scripts/python/ as argument
 # Ensure to end with /
 _WORKING_DIR = ""
+
+# Single device MAC address
+_MAC = "A4:C1:38:D1:17:57"
 
 # BLE handler External Python script
 _BLE_HANDLER = "blescanner.py"
 _PYTHON_COMMAND = "python"
 _BLESCANNER = "blescanner.py"
 
-# Device Specifics
-# Data contains 15 bytes
-_ADVERTISED_DATA_LENGTH = 15
+# GVH Specifics
+# Data contains 6 bytes
+_ADVERTISED_DATA_LENGTH = 6
 _ADDRESS_KEY = "address"
 _NAME_KEY = "name"
 _ADVERTISEMENT_KEY = "advertisementdata"
-# UUID Service Data
-_UUID_SERVICE_DATA = '0000181A-0000-1000-8000-00805F9B34FB'
+# Manufacturer key used from the advertisementdata
+_MANUFACTURER_KEY = "0XEC88"
 
 ################################################################################
 # DECODE DATA
 ################################################################################
 
 def decode_data(data):
-    """Decode the data into a json object with properties."""
+    """Decode the data (6 bytes) into a json object with properties."""
     
     # _DEBUG = 1
-
     if _DEBUG:
-        # {'address': 'A4:C1:38:38:A9:0C', 'name': 'ATC_38A90C', 'local_name': 'ATC_38A90C', 'advertisementdata': {'service_data': True, '0000181A-0000-1000-8000-00805F9B34FB': '0CA93838C1A45A054D1B150B5B0C0E', 'rssi': -56}}
+        # {'address': 'A4:C1:38:D1:17:57', 'name': 'GVH5075_1757', 'local_name': 'GVH5075_1757', 'advertisementdata': {'manufacturer_data': True, '0XEC88': '000286C15F00', '0X4C': '0215494E54454C4C495F524F434B535F48575075F2FF0C', 'rssi': -60}}
         print(f"[DEBUG decode_data]{data}")
 
     # Get the macaddress and the device name.
     macaddress = data[_ADDRESS_KEY]
     name = data[_NAME_KEY]
 
-    # Get the data from service uuid and convert from string to hex
-    data = bytes.fromhex(data[_ADVERTISEMENT_KEY][_UUID_SERVICE_DATA])
+    # Get the data from manufacturer key and convert from string to hex
+    data = bytes.fromhex(data[_ADVERTISEMENT_KEY][_MANUFACTURER_KEY])
 
     if _DEBUG:
         print(f"[DEBUG decode_data] {data.hex().upper()}")
@@ -108,32 +102,42 @@ def decode_data(data):
             "message": msg
         }
     else:
-        # Get the THVB data bytes 6 to 13 from the advertised bytearray
-        data = data[6:13]
-
-        if _DEBUG:
-            print(f"[DEBUG decode_data] {data.hex().upper()}, len={len(data)}")
-
-        # Unpack the bytearray data holding 7 bytes to a tuple with 4 items T, H, V, B
-        # <=little indian, H=unsigned short (2 bytes * 3), B=unsigned char (1 byte) = total 7 bytes
-        dat = struct.unpack('<HHHB', data)
         
-        if _DEBUG:
-            print("[DEBUG] data tuple:", dat, len(dat), "items")
-            # (1788, 69, 2541) 4 items
+        # Get the first 4 bytes holding the temp + hum data
+        # Example 00 02 6B 8E 64 00 > 00 02 6B 8E
+        temphumdata = data[0:4]
 
-        # Create the dict which is printed (=returned)
+        # Unpack packed value into original representation with specified format.
+        # There is a single entry in the tuple; > = big-endian, I = unsigned int
+        raw = struct.unpack(">I", temphumdata)[0]
+        if raw & 0x800000:
+            is_negative = True
+            raw = raw ^ 0x800000
+        else:
+            is_negative = False
+
+        temperature = int(raw / 1000) / 10
+        if is_negative:
+            temperature = 0 - temperature
+
+        humidity = (raw % 1000) / 10
+
+        # Get the battery from byte 4
+        # Example 00 02 6B 8E 64 00 > 64 > DEC 100
+        raw = data[4]
+        batterylevel = raw
+
+        # Create the dict and assign the data to the properties
         result = {
-            "status": "OK",
-            "message": "",
             "mac": macaddress,
             "name": name,
-            "temperature": round(dat[0] / 100,2),	#°C
-            "humidity": round(dat[1] / 100),		#%RH
-            "voltage": round(dat[2] / 1000,2),		#V
-            "batterylevel": dat[3]					#%
+            "status": "OK",
+            "message": "",
+            "temperature": round(temperature,1),
+            "humidity": int(humidity),
+            "batterylevel": int(batterylevel)
         }
-        
+
         if _DEBUG:
             print(f"[DEBUG decode_data]{result}")
 
@@ -149,7 +153,7 @@ def ble_scanner(mac, timeout, advdata, workingdir, debug):
 
     try:
         if debug:
-            print(f'[DEBUG ble_scanner] called {mac}, {workingdir}')
+            print(f'[DEBUG ble_scanner] called {mac}, {os. getcwd()}')
         
         # The external script must located in the same folder as the plugin
         # Command executed: python3 blescanner.py timeout advertised_data
@@ -193,8 +197,9 @@ def ble_scanner(mac, timeout, advdata, workingdir, debug):
 ################################################################################
 
 if __name__ == "__main__":
-    print(f'Scanning single device {_MAC} for {_TIMEOUT} seconds.')
+    # print(f'Scanning single device {_MAC} for {_TIMEOUT} seconds.')
 
+    # python3 blescanner.py -t 5 -a 1 -m 28:CD:C1:09:05:98
     parser = argparse.ArgumentParser()        
     parser.add_argument("-m", "--mac", default=_MAC, type=str)    
     parser.add_argument("-w", "--workingdir", default=_WORKING_DIR, type=str)    
@@ -214,7 +219,7 @@ if __name__ == "__main__":
             if _DEBUG:
                 print(devices['address'], devices['name'], devices['advertisementdata'])
             devdata = decode_data(devices[0])
-            # {'status': 'OK', 'message': '', 'mac': 'A4:C1:38:38:A9:0C', 'name': 'ATC_38A90C', 'temperature': 15.51, 'humidity': 66, 'voltage': 2.84, 'batterylevel': 91}
+            # {'mac': 'A4:C1:38:D1:17:57', 'name': 'GVH5075_1757', 'status': 'OK', 'message': '', 'temperature': 16.5, 'humidity': 56, 'batterylevel': 95}
             print(devdata)
     else:
         print(f'[WARNING] Device {_MAC} not found.')
