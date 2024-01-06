@@ -35,5 +35,7 @@ For the **Domoticz Home Automation System**, there are examples on how to use th
 
 #### Automation Script Decoding
 Another option, instead using a Python sensor script, for getting & decoding sensor data is to use the **blescanner** and decode the JSON object in the automation script dzVents.
-**IN PROGRESS**
+
+See the decode dzVent script examples.
+
 
