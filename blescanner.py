@@ -155,4 +155,3 @@ if __name__ == "__main__":
         print(f'[DEBUG main] {_VERSION}, Python {sys.version}')
         print(f'[DEBUG main] arguments: timeout={args.timeout}, advdata={args.advdata}, mac={args.mac}, debug={args.debug}')
     asyncio.run(blescanner.scanning())
-
