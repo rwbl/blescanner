@@ -16,6 +16,7 @@ For the **Domoticz Home Automation System**, there are examples on how to use th
 **Example Setup Govee 5075 Sensor**
 * Copy Python script **blescanner_gvh5075.py** to the Domoticz folder **~domoticz/scripts/python**.
 * Copy Python script **blescanner.py** to the Domoticz folder **~domoticz/scripts/python**.
+* Open a terminal on the Domoticz system and run **python blescanner.py** from the Domoticz folder **~domoticz/scripts/python** to get the Govee 5075 MAC address, like  {"address": "A4:C1:38:D1:17:57", "name": "GVH5075_1757"}.
 * Add (or use an existing) Domoticz hardware controller **Dummy**.
 * Create a virtual sensor from type **Temp+Hum** from the Domoticz hardware controller **Dummy**.
 * Note the **idx** of the new device.
