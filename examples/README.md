@@ -1,15 +1,22 @@
 ## Examples using the BLEScanner.
 
-The Python scripts are running the BLEScanner as an external process.
+### Device Scanner
+There are two examples which scan for a single or multiple devices.
+
+The sensor data is not decoded.
+
+### Sensor Scripts
+The **Python sensor** scripts are used to get & decode the sensor data and run the BLEScanner as an external process.
 
 The output, JSON object containing an array with one or more devices (sensors), is decoded according the data format specifications.
 
 ### Domoticz Home Automation System
-For the **Domoticz Home Automation System**, there are examples on how to use the Python scripts in automation scripts.
+#### Sensor Scripts
+For the **Domoticz Home Automation System**, there are examples on how to use the Python sensor scripts in automation scripts.
 
 * The automation script examples are written in in **dzVents** (based on Lua).
-* The Python script runs asynchronous (not blocking the Domoticz system) to get the sensor data (as JSON object).
-* The additional script argument **workingdir** is required to run the blescanner from the ~domoticz/scripts/python folder. Example (must end with /): -w scripts/python/.
+* The Python sensor script runs asynchronous (not blocking the Domoticz system) to get the sensor data (as JSON object).
+* The additional sensor script argument **workingdir** is required to run the blescanner from the ~domoticz/scripts/python folder. Example (must end with /): -w scripts/python/.
 * The default scanning time is 10 seconds, but can be changed by setting the timeout argument in the dzVents script. Example 5 seconds: -t 5.
 * The **Domoticz hardware controller "Dummy"** is used to create virtual devices, like a **Temp + Humidity device**, which are updated by the dzVents script.
 
@@ -25,3 +32,7 @@ For the **Domoticz Home Automation System**, there are examples on how to use th
 * Set the **MAC address** and **idx** of the sensor in the table **sensors**, like s01 = {mac = "A4:C1:38:D1:17:57", idxth = 2, aftersec=0, active=true}.
 * Set the automation script to **On** and **save**.
 * Check the Domoticz log.
+
+#### Automation Script Decoding
+Another option, instead using a Python sensor script, for getting & decoding sensor data is to use the **blescanner** and decode the JSON object in the automation script dzVents.
+
