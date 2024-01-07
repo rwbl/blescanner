@@ -25,7 +25,7 @@ The output, JSON object containing an array with one or more devices (sensors), 
 For the **Domoticz Home Automation System**, there are examples on how to use the BLE Scanner in dzVents automation scripts.
 
 There are two options on decoding and updating the Domoticz devices:
-* Sensor data decoding from the JSON object returned by the BLE Scanner and Domoticz device update in the Domoticz dzVents script (preferred)).
+* Sensor data decoding from the JSON object returned by the BLE Scanner and Domoticz device update in the Domoticz dzVents script (preferred).
 * Sensor data decoding in Python Sensor Decoder Script from the JSON object returned by the BLE Scanner and update the Domoticz device in dzVents script.
 
 **Notes**
