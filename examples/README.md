@@ -30,8 +30,6 @@ There are two options on decoding and updating the Domoticz devices:
 
 **Notes**
 * The automation script examples are written in in **dzVents** (based on Lua).
-* The Python sensor decoder script runs asynchronous (not blocking the Domoticz system) to get the sensor data (as JSON object).
-* The Python sensor decoder script calls the BLE Scanner (blescanner.py).
 * The default scanning time is 10 seconds, but can be changed by setting the timeout argument in the dzVents script. Example 5 seconds: -t 5.
 * The **Domoticz hardware controller "Dummy"** is used to create virtual devices, like a **Temp + Humidity device**, which are updated by the dzVents script.
 
@@ -56,6 +54,8 @@ The Python sensor decoder script runs asynchronous to get the sensor data as JSO
 The sensor data JSON object is parsed to update the Domoticz device, like a Temp + Humidity.
 
 **Notes**
+* The Python sensor decoder script runs asynchronous (not blocking the Domoticz system) to get the sensor data (as JSON object).
+* The Python sensor decoder script calls the BLE Scanner.
 * The additional sensor script argument **workingdir** is required to run the BLE Scanner from the ~domoticz/scripts/python folder. Example (must end with /): -w scripts/python/.
 
 **Example Setup Govee 5075 Sensor**
