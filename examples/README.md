@@ -1,9 +1,11 @@
 ## Examples using the BLE Scanner.
 
 ### Devices Scanner
-There are two examples which scan for a single or multiple devices.
+There are two examples using the **BLE Scanner** (blescanner.py) scanning for a single or multiple devices.
 
 The sensor data is not decoded.
+
+Example output JSON array multiple devices:
 ```
 [
 {"address": "70:2A:D5:7E:23:26", "name": null, "advertisementdata": {"manufacturer_data": true, "0X75": "4204018060702AD57E2326722AD57E232501000000000000", "rssi": -90}}, 
@@ -17,10 +19,10 @@ The sensor data is not decoded.
 ### Sensor Decoder Scripts (Python)
 The **Python sensor decoder scripts** are used to get & decode the sensor data and run the BLE Scanner as an external process.
 
-The output, JSON object containing an array with one or more devices (sensors), is decoded according the data format specifications.
+The output, JSON object containing an array with one or more devices (sensors), is decoded according the data format specifications (see previous Devices Scanner).
 
 ### Domoticz Home Automation System
-For the **Domoticz Home Automation System**, there are examples on how to use the BLE Scanner (blescanner.py) in dzVents automation scripts.
+For the **Domoticz Home Automation System**, there are examples on how to use the BLE Scanner in dzVents automation scripts.
 
 There are two options on decoding and updating the Domoticz devices:
 * Sensor data decoding from the JSON object returned by the BLE Scanner and Domoticz device update in the Domoticz dzVents script (preferred)).
@@ -43,7 +45,7 @@ The sensor data is decoded and the Domoticz device is updated.
 * Add (or use an existing) Domoticz hardware controller **Dummy**.
 * Create a virtual sensor type **Temp+Hum** from the Domoticz hardware controller **Dummy**.
 * Note the **idx** of the new device.
-* Add a new automation script from type **dzVents** > minimal. Clear the default content.
+* Add a new automation script from type **dzVents > minimal**. Clear the default content.
 * Copy and paste the content of the file **domoticz_gvh5075.dzvents**.
 * Set the **MAC address** and **idx** of the sensor in the table **sensors**, like s01 = {mac = "A4:C1:38:D1:17:57", idxth = 2, aftersec=0, active=true}.
 * Set the automation script to **On** and **save**.
