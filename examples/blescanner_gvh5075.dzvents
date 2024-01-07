@@ -40,14 +40,27 @@ local TIMER_RULE = "every 5 minutes"
 
 -- Define the sensors
 -- mac - MAC address of the sensor. Use the tool sudo bluetoothctl > scan on to the mac address.
+-- cb - Unique callback used for the shellCommandResponses callback to identify the device.
 -- idxth - Domoticz temp+hum device for this sensor.
 -- aftersec - Start the shell command after NN seconds (this to avoid multiple ble requests to hci0).
 -- active - Set active to true for sensor usage.
 local sensors = {
-    s01 = {mac = "A4:C1:38:D1:17:57", idxth = 2, aftersec=0, active=true},
-    s02 = {mac = "A4:C1:38:XX:XX:XX", idxth = 1, aftersec=10, active=false},
+    s01 = {mac = "A4:C1:38:D1:17:57", cb = "GVH01", idxth = 2, aftersec=0, active=true},
+    s02 = {mac = "A4:C1:38:XX:XX:XX", cb = "GVH02", idxth = 1, aftersec=10, active=false},
     -- Add more
 }
+
+-- Create the sensor callback table from the table sensors field cb
+local function get_sensor_cb()
+    local result = {}
+    for k,v in pairs(sensors) do
+        result[#result + 1] = v.cb
+    end
+    return result
+end
+
+-- Assign the callbacks to global used for the shellCommandResponses
+local callbacks = get_sensor_cb()
 
 -- Get the sensor table with properties for given mac address
 local function get_sensor(domoticz, mac)
@@ -129,26 +142,27 @@ local function decode_advdata(domoticz, address, data)
 end
 
 -- Get the number of entries of a table
-function tablelength(T)
+function table_length(t)
   local count = 0
-  for _ in pairs(T) do count = count + 1 end
+  for _ in pairs(t) do count = count + 1 end
   return count
 end
 
 -- Parse the device data (lua table)
 -- {'address': 'A4:C1:38:D1:17:57', 'name': 'GVH5075_1757', 'local_name': 'GVH5075_1757', 'advertisementdata': {'manufacturer_data': True, '0XEC88': '000286C15F00', '0X4C': '0215494E54454C4C495F524F434B535F48575075F2FF0C', 'rssi': -60}}
-local function parse_device_data(domoticz, data)
+local function parse_device_data(domoticz, device, data)
     -- The data is a table array.
-    domoticz.log(data)
+    -- domoticz.log(data)
     -- Check if there is data
-    if tablelength(data) > 0 then
+    if table_length(data) > 0 then
         -- Get the first item.
         data = data[1]
         local advdata = data[ADVERTISEMENT_KEY]
         decode_advdata(domoticz, data[ADDRESS_KEY], advdata[MANUFACTURER_KEY])
     else
         domoticz.log(string.format(
-            "No data found for the device."), 
+            "No data found for the device %s."
+            ,device), 
             domoticz.LOG_ERROR)
     end
 end
@@ -166,7 +180,7 @@ local function get_sensor_data(domoticz, sensor)
         domoticz.executeShellCommand(
         {
             command = EXEC_CMD:gsub('{MACADDRESS}', sensor.mac),
-            callback = EXEC_CB,
+            callback = sensor.cb,   -- EXEC_CB,
             timeout = EXEC_TIMEOUT,
         }).afterSec(sensor.aftersec)
     end
@@ -178,7 +192,7 @@ return
     on = {
 	    devices = { IDX_TESTSWITCH },
         timer = { TIMER_RULE },
-        shellCommandResponses = { EXEC_CB },
+        shellCommandResponses = callbacks,    -- { EXEC_CB },
     },
     logging = { 
         level = domoticz.LOG_INFO, marker = EXEC_CB, 
@@ -195,16 +209,17 @@ return
 
         -- Handle shell command response
         elseif item.isShellCommandResponse then
-            domoticz.log(item)
+            -- domoticz.log(item)
             -- Check if the response is a JSON object
             if (item.isJSON) then
                 -- Get the sensor data json format             
-                parse_device_data(domoticz, item.json)
+                parse_device_data(domoticz, item.callback, item.json)
             else
-                -- Error = log the property errorText
+                -- Error = log the property errorText and the callback holding the device id.
                 domoticz.log(string.format(
-                    "%s"
-                    ,item.errorText)
+                    "%s %s"
+                    ,item.errorText
+                    ,item.callback)
                     ,domoticz.LOG_ERROR)
             end
         end
