@@ -1,12 +1,21 @@
 ## Examples using the BLE Scanner.
 
-### Device Scanner
+### Devices Scanner
 There are two examples which scan for a single or multiple devices.
 
 The sensor data is not decoded.
+```
+[
+{"address": "70:2A:D5:7E:23:26", "name": null, "advertisementdata": {"manufacturer_data": true, "0X75": "4204018060702AD57E2326722AD57E232501000000000000", "rssi": -90}}, 
+{"address": "A4:C1:38:52:74:C2", "name": "ATC_5274C2", "local_name": "ATC_5274C2", "advertisementdata": {"service_data": true, "0000181A-0000-1000-8000-00805F9B34FB": "C2745238C1A4A406F81759091B410E", "rssi": -46}}, 
+{"address": "F7:6F:D8:27:B7:8D", "name": "Ruuvi B78D", "local_name": "Ruuvi B78D", "advertisementdata": {"manufacturer_data": true, "0X499": "050D255DB8CAFEFFE4006C03F8AB761CAFC6F76FD827B78D", "rssi": -59}}, 
+{"address": "76:73:5D:F9:74:96", "name": null, "advertisementdata": {"service_data": true, "0000FEF3-0000-1000-8000-00805F9B34FB": "4A17234D52584A1132D1308AC746ECB6A1393FF8102BFDAB6BC685", "rssi": -63}}, 
+{"address": "A4:C1:38:38:A9:0C", "name": "ATC_38A90C", "local_name": "ATC_38A90C", "advertisementdata": {"service_data": true, "0000181A-0000-1000-8000-00805F9B34FB": "0CA93838C1A48C068017270B5DA40E", "rssi": -52}}
+]
+```
 
-### Sensor Decoder Scripts
-The **Python sensor decoder** scripts are used to get & decode the sensor data and run the BLE Scanner as an external process.
+### Sensor Decoder Scripts (Python)
+The **Python sensor decoder scripts** are used to get & decode the sensor data and run the BLE Scanner as an external process.
 
 The output, JSON object containing an array with one or more devices (sensors), is decoded according the data format specifications.
 
