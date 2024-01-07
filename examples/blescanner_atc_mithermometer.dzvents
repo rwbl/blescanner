@@ -1,8 +1,8 @@
 --[[
-File: blescanner_gvh5075.dzvents
-Date: 20231107
+File: blescanner_atc_mithermometer.dzvents
+Date: 20240107
 Description:
-Get the temperature, humidity and battery level from Govee 5075 Bluetooth Hygrometer Thermometer sensors.
+Get the temperature, humidity and battery level from Xiaomi Mi Temperature and Hum Monitor 2 sensors.
 The external python script blescanner.py, located in folder ~domoticz/scripts/python/, runs asynchronous to get the sensor data.
 The sensor data is decoded according data format specifications.
 The keys temperature, humidity and batterylevel are used to update a Domoticz device type Temp + Humidity, subtype THGN122/123/132, THGR122/228/238/268.
@@ -17,36 +17,38 @@ At the time of writing it is not possible to set the batterylevel via dzvents.
 as the property batterylevel is readonly.
 The workaround applied is updating the device via HTTP API request.
 http://localhost:8080/json.htm?type=command&param=udevice&idx=%s&nvalue=0&svalue=%s&battery=%s
+
 ]]--
 
--- For tests: Switch Pushbutton on to trigger running the external python script
+-- Switch Pushbutton on to trigger running the external python script
 local IDX_TESTSWITCH = 3
 
 -- Constants command & callback for the dzVents function executeShellCommand
 local EXEC_CMD = "python scripts/python/blescanner.py -m {MACADDRESS} -a 1 -t 5"
-local EXEC_CB = "GVH5075"
+local EXEC_CB = "ATCMITHERMOMETER"
 
 -- Max execution time in seconds.
-local EXEC_TIMEOUT = 30
+local EXEC_TIMEOUT = 45
 
 -- Manufacturer key used to get the sensor data
+local MANUFACTURER_KEY = "0XEC88"
+local ADVERTISED_DATA_LENGTH = 15
 local ADDRESS_KEY = "address"
 local ADVERTISEMENT_KEY = "advertisementdata"
-local MANUFACTURER_KEY = "0XEC88"
+local UUID_SERVICE_DATA = '0000181A-0000-1000-8000-00805F9B34FB'
 
 -- Timer rule - minimum is every 5 minutes (use for tests)
--- local TIMER_RULE = "every 5 minutes"
 local TIMER_RULE = "every 5 minutes"
+-- local TIMER_RULE = "every 15 minutes"
 
--- Define the sensors
+-- Define the mi sensors
 -- mac - MAC address of the sensor. Use the tool sudo bluetoothctl > scan on to the mac address.
 -- idxth - Domoticz temp+hum device for this sensor.
 -- aftersec - Start the shell command after NN seconds (this to avoid multiple ble requests to hci0).
 -- active - Set active to true for sensor usage.
 local sensors = {
-    s01 = {mac = "A4:C1:38:D1:17:57", idxth = 2, aftersec=0, active=true},
-    s02 = {mac = "A4:C1:38:XX:XX:XX", idxth = 1, aftersec=10, active=false},
-    -- Add more
+    s01 = {mac = "A4:C1:38:38:A9:0C", idxth = 2, aftersec=0, active=true},
+    s02 = {mac = "A4:C1:38:52:74:C2", idxth = 1, aftersec=5, active=false},
 }
 
 -- Get the sensor table with properties for given mac address
@@ -69,7 +71,7 @@ end
 local function update_device_temp_hum(domoticz, idx, temperature, humidity, batterylevel)
     -- Log the data
     domoticz.log(string.format(
-        "idx=%d, temperature=%.2f, humidity=%.2f, humiditystatus=%d, batterylevel=%d"
+        "idx=%d, temperature=%.2f, humidity=%.2f, humiditystatus=%d, batterylevel=%.1f"
         ,idx
         ,temperature
         ,humidity
@@ -100,33 +102,39 @@ local function hexencode(str)
    return (str:gsub(".", function(char) return string.format("%02x", char:byte()) end))
 end
 
--- Decode the data which has 6 bytes.
--- Data Conversion:
--- data (6 bytes)=00029E436400 > 00 02 9E 43 64 00
--- The temp+hum are calculated from the first 4 bytes:
--- The data bytes 0-4 = HEX 00 02 9E 43 > converted to DEC 171587
--- temperature = 171587 / 10000 = 17.1 °C              (round, 1)
--- humidity    = 171587 % 1000 = 587 / 10 = 58.7 %RH   (int)
--- battery     = data byte 5 = 64 > DEC 100            (int)
+-- Decode the data which has 7 bytes.
+-- The data contains the macaddress (6 bytes) + sensordata (7 bytes) + 2 bytes not used for counter and flags
+-- 0CA93838C1A49704E21A050B58960E
+-- Data Conversion <HHHB = little indian, H=unsigned short (2 bytes * 3), B=unsigned char (1 byte) = total 7 bytes
+-- Data Example (7 bytes) = 9704E21A050B58 > 9704 E21A 050B 58
+-- t=HEX 0497 > DEC=1175 > 1175 / 100 = 11.75 °C
+-- h=HEX 1AE2 > DEC=6882 > 6882 / 100 = 68.82 %RH
+-- v=HEX 0B05 > DEC=2821 > 2821 / 1000 = 2.821 V
+-- b=HEX 58 > DEC= > 88 = 88 %
+-- temperature=11.75, humidity=68.82, battery=88, voltage=2.82
 local function decode_advdata(domoticz, address, data)
     domoticz.log(string.format(
         'decode__advdata: address=%s,data=%s'
         ,address,data)) 
-    
-    -- TempHum 4 Bytes 0-3 (pos 1-8)
-    local temphumdata = string.sub(data,1,8)
-    local temphum = tonumber('0x' .. temphumdata)
-    local temperature = temphum / 10000
-    local humidity = (temphum % 1000) / 10
-    
-    -- Batterylevel 1 Byte 4 (pos 9-10)
-    temphumdata = string.sub(data,9,10)
-    local batterylevel = tonumber('0x' .. temphumdata)
+
+    -- Get the sensor data from the full data
+    local startpos = (6*2) + 1
+    local endpos = startpos + (7 * 2) - 1
+    local data = string.sub(data, startpos, endpos)
     domoticz.log(string.format(
-        'temperature=%.2f, humidity=%.2f, battery=%d'
+        'decode__advdata: devdata=%s'
+        ,data)) 
+
+    local temperature = tonumber('0x' .. string.sub(data,3,4) .. string.sub(data,1,2)) / 100
+    local humidity = tonumber('0x' .. string.sub(data,7,8) .. string.sub(data,5,6)) / 100
+    local voltage = tonumber('0x' .. string.sub(data,11,12) .. string.sub(data,9,10)) / 1000
+    local batterylevel = tonumber('0x' .. string.sub(data,13,14))
+    domoticz.log(string.format(
+        'temperature=%.2f, humidity=%.2f, battery=%d, voltage=%.2f'
         ,temperature
         ,humidity
-        ,batterylevel)) 
+        ,batterylevel
+        ,voltage)) 
 
     -- Get the sensor table for the idx & update the device
     local sensor = get_sensor(domoticz, address)
@@ -137,13 +145,12 @@ local function decode_advdata(domoticz, address, data)
 end
 
 -- Parse the device data (lua table)
--- {'address': 'A4:C1:38:D1:17:57', 'name': 'GVH5075_1757', 'local_name': 'GVH5075_1757', 'advertisementdata': {'manufacturer_data': True, '0XEC88': '000286C15F00', '0X4C': '0215494E54454C4C495F524F434B535F48575075F2FF0C', 'rssi': -60}}
+-- {'address': 'A4:C1:38:38:A9:0C', 'name': 'ATC_38A90C', 'local_name': 'ATC_38A90C', 'advertisementdata': {'service_data': True, '0000181A-0000-1000-8000-00805F9B34FB': '0CA93838C1A45A054D1B150B5B0C0E', 'rssi': -56}}
 local function parse_device_data(domoticz, data)
     -- The data is a table array. get the first item.
-    domoticz.log(data)
     data = data[1]
     local advdata = data[ADVERTISEMENT_KEY]
-    decode_advdata(domoticz, data[ADDRESS_KEY], advdata[MANUFACTURER_KEY])
+    decode_advdata(domoticz, data[ADDRESS_KEY], advdata[UUID_SERVICE_DATA])
 end
 
 -- Run the python3 script with the macaddress parameter
@@ -173,7 +180,7 @@ return
         shellCommandResponses = { EXEC_CB },
     },
     logging = { 
-        level = domoticz.LOG_INFO, marker = EXEC_CB, 
+        level = domoticz.LOG_DEBUG, marker = EXEC_CB, 
     },   
 
     execute = function(domoticz, item)
@@ -181,7 +188,7 @@ return
         if (item.isDevice or item.isTimer) then 
             -- Loop over all sensors to get the sensor data
             for key, sensor in pairs(sensors) do
-                -- domoticz.log(sensor)
+                domoticz.log(sensor)
                 get_sensor_data(domoticz, sensor)
             end
 
