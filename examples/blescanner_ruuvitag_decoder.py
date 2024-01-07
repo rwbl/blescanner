@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-File: blescanner_ruuvitag_decoder.py
+File: blescanner_ruuvitag.py
 Date: 20240105
 Author: Robert W.B. Linn
 Scan for a single BLE device Ruuvi RuuviTag (ruuvitag) and decode the data published.
