@@ -61,7 +61,10 @@ local function get_sensor(domoticz, mac)
         end
     end
     if result == nil then
-        domoticz.log(string.format("Sensor %s not found.", mac), domoticz.LOG_ERROR)
+        domoticz.log(string.format(
+            "Sensor %s not found."
+            ,mac)
+            ,domoticz.LOG_ERROR)
     end
     return result
 end
@@ -94,14 +97,6 @@ local function update_device_temp_hum(domoticz, idx, temperature, humidity, batt
     domoticz.openURL(url)
 end
 
-local function hexdecode(hex)
-   return (hex:gsub("%x%x", function(digits) return string.char(tonumber(digits, 16)) end))
-end
-
-local function hexencode(str)
-   return (str:gsub(".", function(char) return string.format("%02x", char:byte()) end))
-end
-
 -- Decode the data which has 7 bytes.
 -- The data contains the macaddress (6 bytes) + sensordata (7 bytes) + 2 bytes not used for counter and flags
 -- 0CA93838C1A49704E21A050B58960E
@@ -115,7 +110,8 @@ end
 local function decode_advdata(domoticz, address, data)
     domoticz.log(string.format(
         'decode__advdata: address=%s,data=%s'
-        ,address,data)) 
+        ,address
+        ,data)) 
 
     -- Get the sensor data from the full data
     local startpos = (6*2) + 1
@@ -144,13 +140,29 @@ local function decode_advdata(domoticz, address, data)
     end
 end
 
+-- Get the number of entries of a table
+function tablelength(T)
+  local count = 0
+  for _ in pairs(T) do count = count + 1 end
+  return count
+end
+
 -- Parse the device data (lua table)
 -- {'address': 'A4:C1:38:38:A9:0C', 'name': 'ATC_38A90C', 'local_name': 'ATC_38A90C', 'advertisementdata': {'service_data': True, '0000181A-0000-1000-8000-00805F9B34FB': '0CA93838C1A45A054D1B150B5B0C0E', 'rssi': -56}}
 local function parse_device_data(domoticz, data)
-    -- The data is a table array. get the first item.
-    data = data[1]
-    local advdata = data[ADVERTISEMENT_KEY]
-    decode_advdata(domoticz, data[ADDRESS_KEY], advdata[UUID_SERVICE_DATA])
+    -- The data is a table array.
+    domoticz.log(data)
+    -- Check if there is data
+    if tablelength(data) > 0 then
+        -- Get the first item.
+        data = data[1]
+        local advdata = data[ADVERTISEMENT_KEY]
+        decode_advdata(domoticz, data[ADDRESS_KEY], advdata[UUID_SERVICE_DATA])
+    else
+        domoticz.log(string.format(
+            "No data found for the device.")
+            ,domoticz.LOG_ERROR)
+    end
 end
 
 -- Run the python3 script with the macaddress parameter
@@ -159,7 +171,8 @@ end
 local function get_sensor_data(domoticz, sensor)
     domoticz.log(string.format(
         "get_sensor_data:%s,%s"
-        ,sensor.mac, sensor.active)) 
+        ,sensor.mac
+        ,sensor.active)) 
 
     if (sensor.active == true) then
         domoticz.executeShellCommand(
@@ -180,7 +193,7 @@ return
         shellCommandResponses = { EXEC_CB },
     },
     logging = { 
-        level = domoticz.LOG_DEBUG, marker = EXEC_CB, 
+        level = domoticz.LOG_INFO, marker = EXEC_CB, 
     },   
 
     execute = function(domoticz, item)
@@ -188,7 +201,6 @@ return
         if (item.isDevice or item.isTimer) then 
             -- Loop over all sensors to get the sensor data
             for key, sensor in pairs(sensors) do
-                domoticz.log(sensor)
                 get_sensor_data(domoticz, sensor)
             end
 
@@ -201,7 +213,10 @@ return
                 parse_device_data(domoticz, item.json)
             else
                 -- Error = log the property errorText
-                domoticz.log(item.errorText, domoticz.LOG_ERROR)
+                domoticz.log(string.format(
+                    "%s"
+                    ,item.errorText)
+                    ,domoticz.LOG_ERROR)
             end
         end
     end
