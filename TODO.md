@@ -1,7 +1,7 @@
 # BLEScanner - TODO
 
 ## NEW: Rescan Sensor
-Rescan if no data found for the sensor (happens if sensor not found).
+Rescan if no data for the sensor (happens if sensor not found).
 ### Status
 Not started.
 
