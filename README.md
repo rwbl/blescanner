@@ -57,6 +57,8 @@ See folder **examples** for some scripts ruuning the BLE Scanner to get device d
 The sensor examples, like the Govee GVH5075, Xiaomi Mi TempHum, Ruuvi RuuviTag, include decoding sensor data into properties temperature, humidity, battery level and more.
 
 In addition, there are **Automation Event** examples, written in **dzVents**, for the **Domoticz Home Automation System**.
+The examples run the BLE Scanner for a given sensor MAC address and decode the sensor data from the JSON object returned by the BLE Scanner.
+The decoded sensor data is used to update a Domoticz Virtual Sensor (Domoticz hardware controller Dummy), like a Temp + Humidity device.
 
 ## Licence
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
